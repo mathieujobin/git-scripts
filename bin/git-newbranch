@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+  echo "give me a branch name"
+  exit 9
+fi
+git stash
+git checkout origin/develop
+git checkout -b $1
+

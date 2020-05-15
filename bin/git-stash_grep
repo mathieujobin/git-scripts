@@ -1,0 +1,7 @@
+#!/bin/sh
+
+last_stash_number=`git stash list | tail -n 1 | sed 's/^stash@{\([0-9]*\)}:.*$/\1/'`
+
+for x in `seq 0 $last_stash_number`; do
+  git stash show -p stash@{$x} | grep $* && echo "^^^^^^^ present in stash@{$x}"
+done

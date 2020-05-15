@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+  echo "give me some branch names"
+  exit 9
+fi
+git checkout $1
+git rebase origin/develop
+echo "push?"
+read && git push -f
+

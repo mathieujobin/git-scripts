@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+  echo "give me some files"
+  exit 9
+fi
+git reset HEAD $*
+git checkout $*

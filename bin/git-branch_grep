@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for b in `git branch -a | cut -c 3- | xargs `; do
+  git diff origin/master...$b | grep -C6 "$1" && echo "^^^^^^ found in $b"
+done
