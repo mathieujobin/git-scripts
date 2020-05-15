@@ -62,7 +62,7 @@ simple but very useful.
 
 `git branch_grep`
 
-same idea as stash_grep but with all of your local branches.
+same idea as stash_grep but with all of your local and remote branches.
 - Suggestion of search: `"^+.*Audit\.create"`
 
 I hope you enjoy it.

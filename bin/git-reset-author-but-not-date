@@ -1,3 +1,5 @@
+#!/bin/sh
+
 date=$(git show | grep ^Date: | head -n 1)
 # reset author to make sure the email and gpg signing is correct
 GIT_COMMITTER_DATE="$date" git commit --amend --no-edit --date "$date" --reset-author
