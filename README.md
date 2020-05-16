@@ -18,6 +18,7 @@ make you change and `git amendforcepush` ! done !
 
 `git fooit`
 
+meant as a joke...
 this is probably the most useless of all. it fetchs a random commit message
 commit whatever you have pending
 
@@ -39,11 +40,17 @@ when you had your git config wrong, using your work email instead of your person
 
 does switch to a branch and do a rebase on top of origin/develop
 
-`git rebase_all_branches`
+`git xrebase_all_branches`
 
 there and you encounter some heavy beast function.
 it will go through all of your local branch and attempt to rebase them.
 if it succeed, you can push by answering 'y'
+
+you can disable all pushes and the question that comes with it by passing `--no-push`
+you can also make it stop for rebase that failed if you want to fix those few of those branches. just pass `--stop-to-fix`
+
+by default, it will rebase on top of `origin/develop` you can pass an extra argument to define what should be your top branch.
+
 have fun
 
 `git delete_local_merged_branches`

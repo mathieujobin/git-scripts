@@ -1,0 +1,46 @@
+#!/bin/bash
+
+while [[ $# -gt 0 ]]; do
+  if [ "--no-push" = "$1" ]; then
+    push_mode=disabled
+  elif [ "--stop-to-fix" = "$1" ]; then
+    stop_to_fix=yes
+  else
+    head_branch=$1
+  fi
+  shift
+done
+
+if [ "$head_branch" = "" ]; then
+  head_branch=origin/develop
+fi
+
+[ "$push_mode" = "disabled" ] && echo "push disabled" || echo "push enabled"
+
+echo "parent branch set to: $head_branch"
+echo "start?"
+read
+
+for b in $(git branch | grep "^ "); do
+  echo "==== START $b ===="
+  completed="[32m===== COMPLETED $b =====[m"
+  failed="[34m FAILED $b[m"
+  git checkout $b
+  git rebase $head_branch && rebase_pass=yes || rebase_pass=no
+
+  if [ "$rebase_pass" = "yes" ]; then
+    echo $completed
+    if [ "$push_mode" = "disabled" ]; then
+      echo OK
+    else
+      read x && [ "$x" = "y" ] && git push -f
+    fi
+  else # failed
+    echo $failed
+    if [ "$stop_to_fix" = "yes" ]; then
+      echo "stop and fix? CTRL-C to stop"
+      read
+    fi
+    git rebase --abort
+  fi
+done
