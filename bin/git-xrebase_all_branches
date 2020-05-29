@@ -19,11 +19,17 @@ fi
 
 echo "parent branch set to: $head_branch"
 echo "start?"
+git stash
+git fetch
 read
 
 for b in $(git branch | grep "^ "); do
+  if [ "$b" = "master" -o "$b" = "develop" ]; then
+    echo "==== Skipping $b ===="
+    continue
+  fi
   echo "==== START $b ===="
-  completed="[32m===== COMPLETED $b =====[m"
+  completed="[32m===== COMPLETED $b (enter y to push) =====[m"
   failed="[34m FAILED $b[m"
   git checkout $b
   git rebase $head_branch && rebase_pass=yes || rebase_pass=no
