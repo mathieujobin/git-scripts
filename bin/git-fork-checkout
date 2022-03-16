@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ $# != 1 ]; then
+  echo "need 1 arg, forkaccount:branchname"
+  exit 2
+fi
+
+repo=${PWD##*/}
+IFS=: read fork branch <<< "$1"
+
+git remote add $fork gh:$fork/$repo
+git fetch $fork
+git checkout $fork/$branch
+

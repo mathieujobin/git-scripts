@@ -16,6 +16,15 @@ git clone https://github.com/mathieujobin/git-scripts
 This is very useful when making small changes and always updating the same branch with the same commit. or when you forgot a little something.
 make you change and `git amendforcepush` ! done !
 
+`git fork-checkout forkname:branchname`
+
+Very useful to checkout a PR into your existing repo. Just copy the tag from the open PR.
+It will add the named remote and checkout that branch.
+
+`git reflogwithdate`
+
+Adds a date to the reflog output, we're you looking for this?
+
 `git fooit`
 
 meant as a joke...
@@ -40,7 +49,7 @@ when you had your git config wrong, using your work email instead of your person
 
 does switch to a branch and do a rebase on top of origin/develop
 
-`git xrebase_all_branches`
+`git xrebase_all_branches --head-branch origin/core [search_pattern]`
 
 there and you encounter some heavy beast function.
 it will go through all of your local branch and attempt to rebase them.
@@ -72,11 +81,22 @@ simple but very useful.
 same idea as stash_grep but with all of your local and remote branches.
 - Suggestion of search: `"^+.*Audit\.create"`
 
+## List of commands in alpha state
+
+`git cmdstats`
+
+Parse your local reflog to analyse your own behavior. or if you get access to someone's local repo.
+checks what commands he uses the most. does he switch branch often, create branch, use rebase, merge, etc.
+
+`git size`
+
+Just show the size in bytes of the last commit.
+
+# Copyleft MIT
+
 I hope you enjoy it.
 
 comments, question? find me on https://keybase.io/
-
-# Copyleft MIT
 
 # Author
 

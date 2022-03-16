@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git reflog  | cut -d : -f  2 | cut -d \  -f 2 | sort | uniq -c
+

@@ -1,0 +1,1 @@
+git format-patch --stdout HEAD^..HEAD | wc -c
