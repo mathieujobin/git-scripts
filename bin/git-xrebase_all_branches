@@ -5,14 +5,21 @@ while [[ $# -gt 0 ]]; do
     push_mode=disabled
   elif [ "--stop-to-fix" = "$1" ]; then
     stop_to_fix=yes
-  else
+  elif [ "--head-branch" = "$1" ]; then
+    shift
     head_branch=$1
+  else
+    search_pattern=$1
   fi
   shift
 done
 
 if [ "$head_branch" = "" ]; then
   head_branch=origin/develop
+fi
+
+if [ "$search_pattern" = "" ]; then
+  search_pattern="[a-z][a-z]"
 fi
 
 [ "$push_mode" = "disabled" ] && echo "push disabled" || echo "push enabled"
@@ -23,10 +30,10 @@ git stash
 git fetch
 read
 
-for b in $(git branch | grep "^ "); do
+for b in $(git branch | grep "^  $search_pattern"); do
   if [ "$b" = "master" -o "$b" = "develop" ]; then
     echo "==== Skipping $b ===="
-    continue
+    continue 
   fi
   echo "==== START $b ===="
   completed="[32m===== COMPLETED $b (enter y to push) =====[m"
