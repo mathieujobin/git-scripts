@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# I use this doc to assist me.
+# https://ubuntuhandbook.org/index.php/2021/08/enable-hibernate-ubuntu-21-10/
+
+echo This will first test if your system is able to hibernate.
+echo if it works, simply wake your system.
+echo if it does not, then the script will setup everything for you.
+echo -n "ready? [Y/n] "
+read answer
+
+if [ "$answer" != "Y" ]; then
+  echo Ok bye bye
+  exit 0
+fi
+
+hibernate_output=$(sudo systemctl hibernate 2>&1)
+
+if [[ $(echo $hibernate_output | grep -o 'not supported$') ]]; then
+  system_memory=$(free -m | grep Mem | awk {'print $2'})
+  #full_memory=$(grep MemTotal: /proc/meminfo | awk {'print $2'} | rev | cut -c 4- | rev)
+  echo "You need a swap file large enough to hold all your system memory ($system_memory MiB)."
+  #echo "I will create a file of $full_memory MB."
+  swapon --show
+  df -h
+  echo "Please enter a file name where you want this new swap file to be created. (CTRL-C to cancel.)"
+  echo "Entering an existing file will assume this file is the one you want to use and skip creation."
+  echo -n "swap fullpath filename: "
+  read swapfilepath
+  if [ -f $swapfilepath ]; then
+    echo "File exist, skipping creation and setting up hibernation."
+  else
+    echo "Swap file does not exist, proceeding with creation."
+    sudo dd if=/dev/zero of=$swapfilepath count=$system_memory bs=1MiB
+    sudo chmod 600 $swapfilepath
+    sudo mkswap $swapfilepath
+    sudo swapon $swapfilepath
+    echo "$swapfilepath none swap sw 0 0" | sudo tee -a /etc/fstab
+  fi
+
+  blk_info=$(sudo blkid $(df $swapfilepath | tail -n 1 | awk {'print $1'}))
+  dev_uuid=$(echo $blk_info | awk {'print $2'} | cut -c 7-42)
+  file_offset=$(sudo filefrag -v $swapfilepath | grep "^ *0: " | awk {'print $4'} | rev | cut -c 3- | rev)
+  echo "This is your current Grub default options: $(grep GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub)"
+  grub_line="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash resume=UUID=$dev_uuid resume_offset=$file_offset\""
+  echo "I will overwrite it with >>>$grub_line<<<"
+  sudo sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT.*/$grub_line/" /etc/default/grub
+  sudo update-grub
+  echo "Please reboot your computer before testing again."
+  # Maybe optional:
+  # Regenerate initramfs:
+  # /etc/initramfs-tools/conf.d/resume
+  # “RESUME=UUID=$dev_uuid resume_offset=$file_offset"
+  # sudo update-initramfs -c -k all
+  # Enable Hibernate option in Power-Off Menu:
+  # /etc/polkit-1/localauthority/50-local.d/com.ubuntu.enable-hibernate.pkla
+  polkit_content="
+[Re-enable hibernate by default in upower]
+Identity=unix-user:*
+Action=org.freedesktop.upower.hibernate
+ResultActive=yes
+
+[Re-enable hibernate by default in logind]
+Identity=unix-user:*
+Action=org.freedesktop.login1.hibernate;org.freedesktop.login1.handle-hibernate-key;org.freedesktop.login1;org.freedesktop.login1.hibernate-multiple-sessions;org.freedesktop.login1.hibernate-ignore-inhibit
+ResultActive=yes
+"
+else
+  echo Got unsupported message: $hibernate_output
+  echo 42
+fi
