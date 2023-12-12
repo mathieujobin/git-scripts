@@ -2,10 +2,12 @@
 
 # I use this doc to assist me.
 # https://ubuntuhandbook.org/index.php/2021/08/enable-hibernate-ubuntu-21-10/
+# Updated with http://askubuntu.com/questions/1240123/ddg#1241902
 
 echo This will first test if your system is able to hibernate.
 echo if it works, simply wake your system.
 echo if it does not, then the script will setup everything for you.
+[[ $(cat /sys/power/state) == "freeze mem disk" ]] && echo "it should be working" || echo "its unlikely to work"
 echo -n "ready? [Y/n] "
 read answer
 
@@ -45,16 +47,15 @@ if [[ $(echo $hibernate_output | grep -o 'not supported$') ]]; then
   grub_line="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash resume=UUID=$dev_uuid resume_offset=$file_offset\""
   echo "I will overwrite it with >>>$grub_line<<<"
   sudo sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT.*/$grub_line/" /etc/default/grub
+  sudo apt install --yes pm-utils
   sudo update-grub
   echo "Please reboot your computer before testing again."
   # Maybe optional:
   # Regenerate initramfs:
-  # /etc/initramfs-tools/conf.d/resume
-  # “RESUME=UUID=$dev_uuid resume_offset=$file_offset"
-  # sudo update-initramfs -c -k all
+  echo "RESUME=UUID=$dev_uuid resume_offset=$file_offset" | sudo tee /etc/initramfs-tools/conf.d/resume
+  sudo update-initramfs -c -k all
   # Enable Hibernate option in Power-Off Menu:
-  # /etc/polkit-1/localauthority/50-local.d/com.ubuntu.enable-hibernate.pkla
-  polkit_content="
+  polkit_content='
 [Re-enable hibernate by default in upower]
 Identity=unix-user:*
 Action=org.freedesktop.upower.hibernate
@@ -64,7 +65,9 @@ ResultActive=yes
 Identity=unix-user:*
 Action=org.freedesktop.login1.hibernate;org.freedesktop.login1.handle-hibernate-key;org.freedesktop.login1;org.freedesktop.login1.hibernate-multiple-sessions;org.freedesktop.login1.hibernate-ignore-inhibit
 ResultActive=yes
-"
+'
+  echo "$polkit_content" | sudo tee /etc/polkit-1/localauthority/50-local.d/com.ubuntu.enable-hibernate.pkla
+  [[ $(cat /sys/power/state) == "freeze mem disk" ]] && echo "it should be working now" || echo "its still unlikely to work"
 else
   echo Got unsupported message: $hibernate_output
   echo 42
